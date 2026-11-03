@@ -1,4 +1,9 @@
-"""A small notes service: reads its settings from deploy/.env.staging and prints them."""
+"""A small notes service: reads its settings from deploy/.env.staging and prints them.
+
+Non-secret settings live in the committed env file. Any setting present in the
+process environment overrides the file, and secrets (such as PROVIDER_API_KEY)
+are expected to arrive only that way, so they are never committed.
+"""
 
 import os
 from pathlib import Path
@@ -10,6 +15,11 @@ def settings(path: Path = Path(__file__).parent / "deploy" / ".env.staging") -> 
         if line.strip() and not line.startswith("#") and "=" in line:
             k, v = line.split("=", 1)
             out[k.strip()] = v.strip()
+    # The process environment wins over the committed file for every key the
+    # file names; this is where the deployment injects secrets.
+    for k in list(out):
+        if k in os.environ:
+            out[k] = os.environ[k]
     return out
 
 
