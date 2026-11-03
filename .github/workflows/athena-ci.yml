@@ -1,0 +1,20 @@
+name: athena-ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build (byte-compile)
+        run: python3 -m py_compile notes.py
+      - name: Test (only if a tests/ directory exists)
+        run: |
+          if [ -d tests ]; then
+            python3 -m unittest discover -s tests -v
+          else
+            echo "no tests/ directory; build-only"
+          fi
